@@ -1,0 +1,62 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant::Config.run do |config|
+  
+  config.vm.box = "precise64"
+  config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+
+  config.vm.network :hostonly, "192.168.61.150"
+
+  config.vm.customize ["modifyvm", :id, "--memory", 1024]
+  config.vm.share_folder "v-root", "/vagrant", ".", :extra => 'dmode=777,fmode=777'
+
+  config.vm.provision :chef_solo do |chef|
+
+    chef.cookbooks_path = [
+                           "cookbooks/mazaziz",
+                           "cookbooks/opscode",
+                           "cookbooks/community"
+                          ]
+    
+    chef.add_recipe "resolver"
+    chef.add_recipe "apt"
+    chef.add_recipe "build-essential"
+    chef.add_recipe "emacs"
+    chef.add_recipe "git"
+    chef.add_recipe "memcached"
+    chef.add_recipe "mysql::server"
+    chef.add_recipe "zend"
+    
+    chef.json = { 
+      "emacs" => {
+        "packages" => "emacs23-nox"
+      },
+      "resolver" => {
+        "search" => "example.com",
+        "nameservers" => [
+                          "8.8.8.8", 
+                          "8.8.4.4"
+                         ]
+      },
+      "mysql" => {
+        "server_debian_password" => "vagrant",
+        "server_root_password" => "vagrant",
+        "server_repl_password" => "vagrant"
+      },
+      "zend" => {
+        "install" => "zend-ce",
+        "gui_passwd" => "vagrant",
+        "php" => {
+          "version" => "5.3"
+        },
+        "packages" => {
+          "pdo-mysql" => "install",
+          "xdebug" => "install",
+          "json" => "install",
+        }
+      }
+    }
+  end
+  
+end
