@@ -10,7 +10,7 @@ quick setup
 $ git clone --recursive https://github.com/mazaziz/box.git myproject
 ```
 
-- cd into newly created project folder :  
+- change directory to newly created project folder :  
 ```
 $ cd myproject
 ```
