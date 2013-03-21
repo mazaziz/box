@@ -1,0 +1,95 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant::Config.run do |config|
+  
+  config.vm.box = "precise64"
+  config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+
+  config.vm.network :hostonly, "192.168.61.180"
+
+  config.vm.customize ["modifyvm", :id, "--memory", 1024]
+  config.vm.share_folder "v-root", "/vagrant", ".", :extra => 'dmode=775,fmode=775'
+
+  config.vm.provision :chef_solo do |chef|
+
+    chef.cookbooks_path = [
+                           "cookbooks/mazaziz",
+                           "cookbooks/opscode"
+                          ]
+    
+#    chef.log_level = :debug
+
+    chef.add_recipe "resolver"
+    chef.add_recipe "apt"
+    chef.add_recipe "build-essential"
+    chef.add_recipe "emacs"
+    chef.add_recipe "box::users"
+    chef.add_recipe "postgresql::server"
+    chef.add_recipe "php"
+    chef.add_recipe "nginx::source"
+    
+    chef.json = { 
+      "box" => {
+        "users" => {
+          "nginx" => {
+            "system" => true
+          },
+          "php-fpm" => {
+            "system" => true
+          }
+        }
+      },
+      "emacs" => {
+        "packages" => "emacs23-nox"
+      },
+      "resolver" => {
+        "search" => "example.com",
+        "nameservers" => [
+                          "8.8.8.8", 
+                          "8.8.4.4"
+                         ]
+      },
+      "postgresql" => {
+        "version" => "9.1",
+        "password" => {
+          "postgres" => "test123"
+        }
+      },
+      "php" => {
+        "install_method" => "source",
+        "version" => "5.4.11",
+        "configure_options" => [
+                                "--disable-all", 
+                                "--disable-debug",
+                                "--enable-fpm",
+                                "--with-fpm-user=php-fpm",
+                                "--with-fpm-group=php-fpm",
+                                "--enable-mbstring",
+                                "--with-mcrypt",
+                                "--enable-xml",
+                                "--enable-libxml",
+                                "--enable-phar",
+                                "--enable-pdo",
+                                "--enable-json",
+                                "--enable-hash",
+                                "--enable-ctype",
+                                "--enable-zip",
+                                "--with-iconv",
+                                "--with-pear",
+                                "--with-pdo-pgsql"
+                               ]
+      },
+      "nginx" => {
+        "user" => "nginx",
+        "group" => "nginx",
+        "version" => "1.2.6",
+        "init_style" => "init",
+        "source" => {
+          "prefix" => "/usr/local/nginx"
+        }
+      }
+    }
+  end
+  
+end
